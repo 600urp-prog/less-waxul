@@ -12,7 +12,7 @@ export async function saveSurebets(surebets: Surebet[], bankroll: number) {
     away_team: sb.awayTeam,
     commence_time: sb.commenceTime,
     market_type: sb.marketType,
-    outcomes: sb.outcomes,
+    outcomes: JSON.parse(JSON.stringify(sb.outcomes)),
     profit_percent: sb.profitPercent,
     total_stake: sb.totalStake,
     guaranteed_return: sb.guaranteedReturn,
