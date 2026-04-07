@@ -14,7 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      surebet_history: {
+        Row: {
+          away_team: string
+          bankroll: number
+          commence_time: string
+          created_at: string
+          detected_at: string
+          event_id: string
+          guaranteed_return: number
+          home_team: string
+          id: string
+          market_type: string
+          outcomes: Json
+          profit: number
+          profit_percent: number
+          sport: string
+          sport_key: string
+          total_stake: number
+        }
+        Insert: {
+          away_team: string
+          bankroll: number
+          commence_time: string
+          created_at?: string
+          detected_at?: string
+          event_id: string
+          guaranteed_return: number
+          home_team: string
+          id?: string
+          market_type: string
+          outcomes: Json
+          profit: number
+          profit_percent: number
+          sport: string
+          sport_key: string
+          total_stake: number
+        }
+        Update: {
+          away_team?: string
+          bankroll?: number
+          commence_time?: string
+          created_at?: string
+          detected_at?: string
+          event_id?: string
+          guaranteed_return?: number
+          home_team?: string
+          id?: string
+          market_type?: string
+          outcomes?: Json
+          profit?: number
+          profit_percent?: number
+          sport?: string
+          sport_key?: string
+          total_stake?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
