@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
-import { FilterState, SPORTS, BOOKMAKERS, BET_TYPES } from '@/lib/types';
+import { FilterState } from '@/lib/types';
 import { detectSurebets, generateMockEvents } from '@/lib/surebet-engine';
+import { saveSurebets } from '@/lib/history-service';
 
 const DEFAULT_FILTERS: FilterState = {
   sports: [],
@@ -15,6 +16,7 @@ export function useSurebets() {
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
   const [isScanning, setIsScanning] = useState(false);
   const [lastScan, setLastScan] = useState<Date | null>(null);
+  const [onScanComplete, setOnScanComplete] = useState<(() => void) | null>(null);
 
   const events = useMemo(() => generateMockEvents(), []);
 
@@ -55,13 +57,21 @@ export function useSurebets() {
     setFilters(f => ({ ...f, vipMode: !f.vipMode }));
   }, []);
 
+  const registerOnScanComplete = useCallback((cb: () => void) => {
+    setOnScanComplete(() => cb);
+  }, []);
+
   const scan = useCallback(() => {
     setIsScanning(true);
-    setTimeout(() => {
+    setTimeout(async () => {
+      // Save to history
+      const detected = detectSurebets(events, filters);
+      await saveSurebets(detected, filters.bankroll);
       setIsScanning(false);
       setLastScan(new Date());
+      onScanComplete?.();
     }, 1500);
-  }, []);
+  }, [events, filters, onScanComplete]);
 
   return {
     filters,
@@ -75,5 +85,6 @@ export function useSurebets() {
     setMinProfit,
     toggleVipMode,
     scan,
+    registerOnScanComplete,
   };
 }
