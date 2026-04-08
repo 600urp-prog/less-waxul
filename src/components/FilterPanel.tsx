@@ -65,8 +65,7 @@ export function FilterPanel({
         <label className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-2 block">
           Sports {selectedSportCount > 0 && <span className="text-primary">({selectedSportCount})</span>}
         </label>
-        <ScrollArea className="max-h-[200px]">
-          <div className="space-y-1 pr-2">
+          <div className="space-y-1">
             {SPORT_GROUPS.map(group => {
               const groupSports = sportsByGroup[group];
               if (!groupSports || groupSports.length === 0) return null;
@@ -105,7 +104,6 @@ export function FilterPanel({
               );
             })}
           </div>
-        </ScrollArea>
       </div>
 
       {/* Bookmakers by Region */}
@@ -113,8 +111,7 @@ export function FilterPanel({
         <label className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-2 block">
           Bookmakers {selectedBmCount > 0 && <span className="text-primary">({selectedBmCount})</span>}
         </label>
-        <ScrollArea className="max-h-[250px]">
-          <div className="space-y-1 pr-2">
+          <div className="space-y-1">
             {BOOKMAKER_REGIONS.map(region => {
               const regionBms = bookmakersByRegion[region.key];
               if (!regionBms || regionBms.length === 0) return null;
@@ -153,7 +150,6 @@ export function FilterPanel({
               );
             })}
           </div>
-        </ScrollArea>
       </div>
 
       {/* Bet Types */}
