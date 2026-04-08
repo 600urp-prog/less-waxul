@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Header } from '@/components/Header';
 import { FilterPanel } from '@/components/FilterPanel';
 import { SurebetTable } from '@/components/SurebetTable';
@@ -6,10 +6,16 @@ import { StatsBar } from '@/components/StatsBar';
 import { HistoryTable } from '@/components/HistoryTable';
 import { useSurebets } from '@/hooks/use-surebets';
 import { useHistory } from '@/hooks/use-history';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Zap, History } from 'lucide-react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { Zap, History, SlidersHorizontal } from 'lucide-react';
 
 const Index = () => {
+  const isMobile = useIsMobile();
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
   const {
     filters,
     surebets,
@@ -31,29 +37,56 @@ const Index = () => {
     registerOnScanComplete(reload);
   }, [registerOnScanComplete, reload]);
 
+  const filterPanel = (
+    <FilterPanel
+      filters={filters}
+      isScanning={isScanning}
+      lastScan={lastScan}
+      onToggleSport={toggleSport}
+      onToggleBookmaker={toggleBookmaker}
+      onToggleBetType={toggleBetType}
+      onSetBankroll={setBankroll}
+      onSetMinProfit={setMinProfit}
+      onToggleVip={toggleVipMode}
+      onScan={scan}
+    />
+  );
+
   return (
     <div className="min-h-screen bg-background grid-bg">
       <Header />
       
       <main className="container px-4 py-6">
-        <StatsBar surebets={surebets} bankroll={filters.bankroll} />
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <StatsBar surebets={surebets} bankroll={filters.bankroll} />
+          </div>
+          {isMobile && (
+            <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon" className="shrink-0 border-border">
+                  <SlidersHorizontal className="h-4 w-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[300px] overflow-y-auto">
+                <SheetHeader>
+                  <SheetTitle className="font-mono text-sm uppercase tracking-wider">Filtres</SheetTitle>
+                </SheetHeader>
+                <div className="mt-4">
+                  {filterPanel}
+                </div>
+              </SheetContent>
+            </Sheet>
+          )}
+        </div>
         
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6">
-          {/* Sidebar filters */}
-          <aside className="rounded-lg border border-border bg-card p-4">
-            <FilterPanel
-              filters={filters}
-              isScanning={isScanning}
-              lastScan={lastScan}
-              onToggleSport={toggleSport}
-              onToggleBookmaker={toggleBookmaker}
-              onToggleBetType={toggleBetType}
-              onSetBankroll={setBankroll}
-              onSetMinProfit={setMinProfit}
-              onToggleVip={toggleVipMode}
-              onScan={scan}
-            />
-          </aside>
+          {/* Sidebar filters - desktop only */}
+          {!isMobile && (
+            <aside className="rounded-lg border border-border bg-card p-4">
+              {filterPanel}
+            </aside>
+          )}
 
           {/* Results with tabs */}
           <section>
