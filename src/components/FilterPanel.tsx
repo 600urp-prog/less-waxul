@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Search, Crown, DollarSign, TrendingUp, ChevronDown } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
+
 
 interface FilterPanelProps {
   filters: FilterState;
