@@ -58,7 +58,7 @@ const Admin = () => {
     profit: { label: 'Profit (€)', color: 'hsl(var(--accent))' },
   };
 
-  const intervalOptions = [10, 15, 20, 30, 45, 60, 90, 120];
+  const intervalOptions = [10, 15, 20, 30, 45, 60, 90, 120, 180, 240, 300];
 
   return (
     <div className="min-h-screen bg-background grid-bg">
@@ -291,6 +291,7 @@ const Admin = () => {
                         onClick={() => handleSaveInterval(val)}
                         className="font-mono text-xs border-border"
                       >
+                        {val >= 60 ? `${val / 60}min` : `${val}s`}
                         {val}s
                       </Button>
                     ))}
