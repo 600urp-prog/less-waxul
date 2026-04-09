@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
       ? [...new Set(bookmakers.map((b: string) => getRegionForBookmaker(b)))].filter(Boolean).join(',') || 'eu,uk,us,au'
       : 'eu,uk,us,au'
 
-    // Fetch odds for each selected sport
+    // Fetch odds for each selected sport (upcoming/pre-match)
     const allEvents: any[] = []
     const errors: string[] = []
 
