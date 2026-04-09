@@ -86,7 +86,12 @@ Deno.serve(async (req) => {
 
       for (const result of results) {
         if (result.status === 'fulfilled') {
-          allEvents.push(...result.value)
+          for (const event of result.value) {
+            if (!seenEventIds.has(event.id)) {
+              seenEventIds.add(event.id)
+              allEvents.push(event)
+            }
+          }
         } else {
           errors.push(result.reason?.message || 'Unknown error')
         }
