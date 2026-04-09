@@ -216,19 +216,19 @@ export function FilterPanel({
       {/* Scan Button */}
       <Button
         onClick={onScan}
-        disabled={isScanning}
+        disabled={isScanning || filters.sports.length === 0}
         className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-mono uppercase tracking-wider glow-primary"
         size="lg"
       >
         {isScanning ? (
           <>
             <Search className="h-4 w-4 animate-spin" />
-            Scanning...
+            Scanning API...
           </>
         ) : (
           <>
             <Search className="h-4 w-4" />
-            Scanner les surebets
+            {filters.sports.length === 0 ? 'Sélectionnez des sports' : 'Scanner les surebets'}
           </>
         )}
       </Button>
