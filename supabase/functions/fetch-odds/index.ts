@@ -57,41 +57,29 @@ Deno.serve(async (req) => {
       ? [...new Set(bookmakers.map((b: string) => getRegionForBookmaker(b)))].filter(Boolean).join(',') || 'eu,uk,us,au'
       : 'eu,uk,us,au'
 
-    // Fetch odds for each selected sport (upcoming + live)
+    // Fetch odds for each selected sport (upcoming/pre-match)
     const allEvents: any[] = []
     const errors: string[] = []
-    const seenEventIds = new Set<string>()
-
-    const fetchSportOdds = async (sportKey: string, live: boolean) => {
-      const endpoint = live ? 'odds-live' : 'odds'
-      const url = `${ODDS_API_BASE}/sports/${sportKey}/${endpoint}/?apiKey=${apiKey}&regions=${regions}&markets=${markets}&oddsFormat=decimal`
-      const resp = await fetch(url)
-      if (!resp.ok) {
-        const text = await resp.text()
-        throw new Error(`${sportKey} (${live ? 'live' : 'upcoming'}): ${resp.status} - ${text}`)
-      }
-      return resp.json()
-    }
 
     // Limit concurrent requests to avoid rate limiting
     const batchSize = 3
     for (let i = 0; i < sports.length; i += batchSize) {
       const batch = sports.slice(i, i + batchSize)
-      // For each sport, fetch both upcoming and live
-      const tasks = batch.flatMap((sportKey: string) => [
-        fetchSportOdds(sportKey, false),
-        fetchSportOdds(sportKey, true),
-      ])
-      const results = await Promise.allSettled(tasks)
+      const results = await Promise.allSettled(
+        batch.map(async (sportKey: string) => {
+          const url = `${ODDS_API_BASE}/sports/${sportKey}/odds/?apiKey=${apiKey}&regions=${regions}&markets=${markets}&oddsFormat=decimal`
+          const resp = await fetch(url)
+          if (!resp.ok) {
+            const text = await resp.text()
+            throw new Error(`${sportKey}: ${resp.status} - ${text}`)
+          }
+          return resp.json()
+        })
+      )
 
       for (const result of results) {
         if (result.status === 'fulfilled') {
-          for (const event of result.value) {
-            if (!seenEventIds.has(event.id)) {
-              seenEventIds.add(event.id)
-              allEvents.push(event)
-            }
-          }
+          allEvents.push(...result.value)
         } else {
           errors.push(result.reason?.message || 'Unknown error')
         }
