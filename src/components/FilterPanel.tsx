@@ -11,7 +11,9 @@ interface FilterPanelProps {
   isScanning: boolean;
   lastScan: Date | null;
   onToggleSport: (key: string) => void;
+  onSetSports: (keys: string[]) => void;
   onToggleBookmaker: (key: string) => void;
+  onSetBookmakers: (keys: string[]) => void;
   onToggleBetType: (key: string) => void;
   onSetBankroll: (value: number) => void;
   onSetMinProfit: (value: number) => void;
@@ -26,7 +28,9 @@ export function FilterPanel({
   isScanning,
   lastScan,
   onToggleSport,
+  onSetSports,
   onToggleBookmaker,
+  onSetBookmakers,
   onToggleBetType,
   onSetBankroll,
   onSetMinProfit,
