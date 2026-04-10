@@ -1,12 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { SPORTS, BOOKMAKERS, BOOKMAKER_REGIONS, BET_TYPES, SPORT_GROUPS, FilterState } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Search, Crown, DollarSign, TrendingUp, ChevronDown } from 'lucide-react';
-
+import { Search, Crown, DollarSign, TrendingUp, ChevronDown, ChevronRight, Check } from 'lucide-react';
 
 interface FilterPanelProps {
   filters: FilterState;
@@ -21,6 +19,8 @@ interface FilterPanelProps {
   onScan: () => void;
 }
 
+type Section = 'sports' | 'bookmakers' | null;
+
 export function FilterPanel({
   filters,
   isScanning,
@@ -33,187 +33,222 @@ export function FilterPanel({
   onToggleVip,
   onScan,
 }: FilterPanelProps) {
-  const [openSportGroups, setOpenSportGroups] = useState<string[]>([]);
-  const [openRegions, setOpenRegions] = useState<string[]>(['eu']);
+  const [expandedSection, setExpandedSection] = useState<Section>(null);
+  const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
 
-  const toggleGroup = (group: string, list: string[], setter: (v: string[]) => void) => {
-    setter(list.includes(group) ? list.filter(g => g !== group) : [...list, group]);
-  };
+  const sportsByGroup = useMemo(() => {
+    const map: Record<string, typeof SPORTS> = {};
+    for (const group of SPORT_GROUPS) {
+      map[group] = SPORTS.filter(s => s.group === group);
+    }
+    return map;
+  }, []);
 
-  const sportsByGroup = SPORT_GROUPS.reduce((acc, group) => {
-    acc[group] = SPORTS.filter(s => s.group === group);
-    return acc;
-  }, {} as Record<string, typeof SPORTS>);
-
-  const bookmakersByRegion = BOOKMAKER_REGIONS.reduce((acc, region) => {
-    acc[region.key] = BOOKMAKERS.filter(b => b.region === region.key);
-    return acc;
-  }, {} as Record<string, typeof BOOKMAKERS>);
+  const bookmakersByRegion = useMemo(() => {
+    const map: Record<string, typeof BOOKMAKERS> = {};
+    for (const region of BOOKMAKER_REGIONS) {
+      map[region.key] = BOOKMAKERS.filter(b => b.region === region.key);
+    }
+    return map;
+  }, []);
 
   const selectedSportCount = filters.sports.length;
   const selectedBmCount = filters.bookmakers.length;
 
+  const toggleSection = (s: Section) => {
+    setExpandedSection(prev => prev === s ? null : s);
+    setExpandedGroup(null);
+  };
+
   return (
     <motion.div
-      className="space-y-5"
+      className="space-y-3"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
     >
-      {/* Sports */}
-      <div>
-        <label className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-2 block">
-          Sports {selectedSportCount > 0 && <span className="text-primary">({selectedSportCount})</span>}
-        </label>
-          <div className="space-y-1">
+      {/* ── Sports selector ── */}
+      <div className="rounded-lg border border-border overflow-hidden">
+        <button
+          onClick={() => toggleSection('sports')}
+          className="flex items-center justify-between w-full px-3 py-2.5 bg-secondary/50 hover:bg-secondary transition-colors"
+        >
+          <span className="text-xs font-mono uppercase tracking-wider text-foreground flex items-center gap-2">
+            ⚽ Sports
+            {selectedSportCount > 0 && (
+              <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded-full font-bold">{selectedSportCount}</span>
+            )}
+          </span>
+          <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${expandedSection === 'sports' ? 'rotate-180' : ''}`} />
+        </button>
+
+        {expandedSection === 'sports' && (
+          <div className="border-t border-border max-h-60 overflow-y-auto">
             {SPORT_GROUPS.map(group => {
               const groupSports = sportsByGroup[group];
-              if (!groupSports || groupSports.length === 0) return null;
-              const isOpen = openSportGroups.includes(group);
+              if (!groupSports?.length) return null;
+              const isGroupOpen = expandedGroup === group;
               const selectedInGroup = groupSports.filter(s => filters.sports.includes(s.key)).length;
 
               return (
-                <Collapsible key={group} open={isOpen} onOpenChange={() => toggleGroup(group, openSportGroups, setOpenSportGroups)}>
-                  <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1.5 rounded-md text-xs font-medium hover:bg-secondary/80 transition-colors">
-                    <span className="flex items-center gap-1.5">
+                <div key={group}>
+                  <button
+                    onClick={() => setExpandedGroup(isGroupOpen ? null : group)}
+                    className="flex items-center justify-between w-full px-3 py-2 text-xs hover:bg-secondary/60 transition-colors border-b border-border/30"
+                  >
+                    <span className="flex items-center gap-1.5 text-foreground">
+                      {isGroupOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
                       {groupSports[0]?.icon} {group}
-                      {selectedInGroup > 0 && (
-                        <span className="text-[10px] bg-primary/20 text-primary px-1.5 rounded-full">{selectedInGroup}</span>
-                      )}
                     </span>
-                    <ChevronDown className={`h-3 w-3 transition-transform text-muted-foreground ${isOpen ? 'rotate-180' : ''}`} />
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="flex flex-wrap gap-1.5 pl-4 pt-1 pb-1">
-                      {groupSports.map(sport => (
-                        <button
-                          key={sport.key}
-                          onClick={() => onToggleSport(sport.key)}
-                          className={`px-2 py-1 rounded text-[10px] font-medium transition-all border ${
-                            filters.sports.includes(sport.key) || filters.sports.length === 0
-                              ? 'bg-primary/15 border-primary/40 text-primary'
-                              : 'bg-secondary border-border text-muted-foreground hover:text-foreground'
-                          }`}
-                        >
-                          {sport.label}
-                        </button>
-                      ))}
+                    {selectedInGroup > 0 && (
+                      <span className="text-[10px] bg-primary/20 text-primary px-1.5 rounded-full">{selectedInGroup}</span>
+                    )}
+                  </button>
+                  {isGroupOpen && (
+                    <div className="bg-background/50">
+                      {groupSports.map(sport => {
+                        const isSelected = filters.sports.includes(sport.key);
+                        return (
+                          <button
+                            key={sport.key}
+                            onClick={() => onToggleSport(sport.key)}
+                            className={`flex items-center justify-between w-full px-4 pl-8 py-1.5 text-[11px] transition-colors ${
+                              isSelected ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-secondary/40'
+                            }`}
+                          >
+                            <span>{sport.label}</span>
+                            {isSelected && <Check className="h-3 w-3" />}
+                          </button>
+                        );
+                      })}
                     </div>
-                  </CollapsibleContent>
-                </Collapsible>
+                  )}
+                </div>
               );
             })}
           </div>
+        )}
       </div>
 
-      {/* Bookmakers by Region */}
-      <div>
-        <label className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-2 block">
-          Bookmakers {selectedBmCount > 0 && <span className="text-primary">({selectedBmCount})</span>}
-        </label>
-          <div className="space-y-1">
+      {/* ── Bookmakers selector ── */}
+      <div className="rounded-lg border border-border overflow-hidden">
+        <button
+          onClick={() => toggleSection('bookmakers')}
+          className="flex items-center justify-between w-full px-3 py-2.5 bg-secondary/50 hover:bg-secondary transition-colors"
+        >
+          <span className="text-xs font-mono uppercase tracking-wider text-foreground flex items-center gap-2">
+            🏢 Bookmakers
+            {selectedBmCount > 0 ? (
+              <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded-full font-bold">{selectedBmCount}</span>
+            ) : (
+              <span className="text-[10px] text-muted-foreground">(tous)</span>
+            )}
+          </span>
+          <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${expandedSection === 'bookmakers' ? 'rotate-180' : ''}`} />
+        </button>
+
+        {expandedSection === 'bookmakers' && (
+          <div className="border-t border-border max-h-60 overflow-y-auto">
             {BOOKMAKER_REGIONS.map(region => {
               const regionBms = bookmakersByRegion[region.key];
-              if (!regionBms || regionBms.length === 0) return null;
-              const isOpen = openRegions.includes(region.key);
+              if (!regionBms?.length) return null;
+              const isGroupOpen = expandedGroup === region.key;
               const selectedInRegion = regionBms.filter(b => filters.bookmakers.includes(b.key)).length;
 
               return (
-                <Collapsible key={region.key} open={isOpen} onOpenChange={() => toggleGroup(region.key, openRegions, setOpenRegions)}>
-                  <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1.5 rounded-md text-xs font-medium hover:bg-secondary/80 transition-colors">
-                    <span className="flex items-center gap-1.5">
+                <div key={region.key}>
+                  <button
+                    onClick={() => setExpandedGroup(isGroupOpen ? null : region.key)}
+                    className="flex items-center justify-between w-full px-3 py-2 text-xs hover:bg-secondary/60 transition-colors border-b border-border/30"
+                  >
+                    <span className="flex items-center gap-1.5 text-foreground">
+                      {isGroupOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
                       {region.flag} {region.label}
-                      {selectedInRegion > 0 && (
-                        <span className="text-[10px] bg-primary/20 text-primary px-1.5 rounded-full">{selectedInRegion}</span>
-                      )}
                     </span>
-                    <ChevronDown className={`h-3 w-3 transition-transform text-muted-foreground ${isOpen ? 'rotate-180' : ''}`} />
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="flex flex-wrap gap-1.5 pl-4 pt-1 pb-1">
-                      {regionBms.map(bm => (
-                        <button
-                          key={`${region.key}-${bm.key}`}
-                          onClick={() => onToggleBookmaker(bm.key)}
-                          className={`px-2 py-1 rounded text-[10px] font-medium transition-all border ${
-                            filters.bookmakers.includes(bm.key) || filters.bookmakers.length === 0
-                              ? 'bg-primary/15 border-primary/40 text-primary'
-                              : 'bg-secondary border-border text-muted-foreground hover:text-foreground'
-                          }`}
-                        >
-                          {bm.title}
-                        </button>
-                      ))}
+                    {selectedInRegion > 0 && (
+                      <span className="text-[10px] bg-primary/20 text-primary px-1.5 rounded-full">{selectedInRegion}</span>
+                    )}
+                  </button>
+                  {isGroupOpen && (
+                    <div className="bg-background/50">
+                      {regionBms.map(bm => {
+                        const isSelected = filters.bookmakers.includes(bm.key);
+                        return (
+                          <button
+                            key={`${region.key}-${bm.key}`}
+                            onClick={() => onToggleBookmaker(bm.key)}
+                            className={`flex items-center justify-between w-full px-4 pl-8 py-1.5 text-[11px] transition-colors ${
+                              isSelected ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-secondary/40'
+                            }`}
+                          >
+                            <span>{bm.title}</span>
+                            {isSelected && <Check className="h-3 w-3" />}
+                          </button>
+                        );
+                      })}
                     </div>
-                  </CollapsibleContent>
-                </Collapsible>
+                  )}
+                </div>
               );
             })}
           </div>
+        )}
       </div>
 
-      {/* Bet Types */}
-      <div>
-        <label className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-2 block">
-          Bet Type
-        </label>
-        <div className="flex flex-wrap gap-2">
-          {BET_TYPES.map(bt => (
-            <button
-              key={bt.key}
-              onClick={() => onToggleBetType(bt.key)}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all border ${
-                filters.betTypes.includes(bt.key) || filters.betTypes.length === 0
-                  ? 'bg-primary/15 border-primary/40 text-primary'
-                  : 'bg-secondary border-border text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {bt.label}
-            </button>
-          ))}
+      {/* ── Bet Types (toujours visible, compact) ── */}
+      <div className="flex flex-wrap gap-1.5">
+        {BET_TYPES.map(bt => (
+          <button
+            key={bt.key}
+            onClick={() => onToggleBetType(bt.key)}
+            className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all border ${
+              filters.betTypes.includes(bt.key) || filters.betTypes.length === 0
+                ? 'bg-primary/15 border-primary/40 text-primary'
+                : 'bg-secondary border-border text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {bt.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Bankroll + VIP (inline) ── */}
+      <div className="flex items-center gap-2">
+        <div className="flex-1">
+          <div className="relative">
+            <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              type="number"
+              value={filters.bankroll}
+              onChange={e => onSetBankroll(Number(e.target.value) || 0)}
+              className="bg-secondary border-border font-mono text-foreground pl-7 h-9 text-xs"
+              min={0}
+              placeholder="Bankroll"
+            />
+          </div>
         </div>
-      </div>
-
-      {/* Bankroll */}
-      <div>
-        <label className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-          <DollarSign className="h-3 w-3" /> Bankroll
-        </label>
-        <Input
-          type="number"
-          value={filters.bankroll}
-          onChange={e => onSetBankroll(Number(e.target.value) || 0)}
-          className="bg-secondary border-border font-mono text-foreground"
-          min={0}
-        />
-      </div>
-
-      {/* VIP Mode */}
-      <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 border border-border">
-        <div className="flex items-center gap-2">
-          <Crown className="h-4 w-4 text-warning" />
-          <span className="text-xs font-medium text-foreground">Mode VIP</span>
+        <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-md bg-secondary/50 border border-border">
+          <Crown className="h-3.5 w-3.5 text-warning" />
+          <Switch checked={filters.vipMode} onCheckedChange={onToggleVip} className="scale-75" />
         </div>
-        <Switch checked={filters.vipMode} onCheckedChange={onToggleVip} />
       </div>
 
       {filters.vipMode && (
-        <div>
-          <label className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-            <TrendingUp className="h-3 w-3" /> Profit min (%)
-          </label>
+        <div className="relative">
+          <TrendingUp className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input
             type="number"
             value={filters.minProfit}
             onChange={e => onSetMinProfit(Number(e.target.value) || 0)}
-            className="bg-secondary border-border font-mono text-foreground"
+            className="bg-secondary border-border font-mono text-foreground pl-7 h-9 text-xs"
             step={0.1}
             min={0}
+            placeholder="Profit min %"
           />
         </div>
       )}
 
-      {/* Scan Button */}
+      {/* ── Scan Button ── */}
       <Button
         onClick={onScan}
         disabled={isScanning || filters.sports.length === 0}
@@ -223,12 +258,12 @@ export function FilterPanel({
         {isScanning ? (
           <>
             <Search className="h-4 w-4 animate-spin" />
-            Scanning API...
+            Scanning...
           </>
         ) : (
           <>
             <Search className="h-4 w-4" />
-            {filters.sports.length === 0 ? 'Sélectionnez des sports' : 'Scanner les surebets'}
+            {filters.sports.length === 0 ? 'Sélectionnez des sports' : 'Scanner'}
           </>
         )}
       </Button>
