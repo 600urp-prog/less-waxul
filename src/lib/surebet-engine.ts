@@ -21,7 +21,7 @@ export function detectSurebets(events: Event[], filters: FilterState): Surebet[]
       const marketKey = betType === 'h2h' ? 'h2h' : 'totals';
       
       // Collect best odds per outcome across bookmakers
-      const bestOdds = new Map<string, { odds: number; bookmaker: string }>();
+      const bestOdds = new Map<string, { odds: number; bookmaker: string; bookmakerKey: string }>();
 
       for (const bm of filteredBookmakers) {
         const market = bm.markets.find(m => m.key === marketKey);
@@ -30,7 +30,7 @@ export function detectSurebets(events: Event[], filters: FilterState): Surebet[]
         for (const outcome of market.outcomes) {
           const current = bestOdds.get(outcome.name);
           if (!current || outcome.price > current.odds) {
-            bestOdds.set(outcome.name, { odds: outcome.price, bookmaker: bm.title });
+            bestOdds.set(outcome.name, { odds: outcome.price, bookmaker: bm.title, bookmakerKey: bm.key });
           }
         }
       }
@@ -51,11 +51,12 @@ export function detectSurebets(events: Event[], filters: FilterState): Surebet[]
         if (filters.vipMode && profitPercent < filters.minProfit) continue;
 
         const guaranteedReturn = filters.bankroll / totalImplied;
-        const outcomes: SurebetOutcome[] = entries.map(([name, { odds, bookmaker }]) => {
+        const outcomes: SurebetOutcome[] = entries.map(([name, { odds, bookmaker, bookmakerKey }]) => {
           const exactStake = guaranteedReturn / odds;
           return {
             outcomeName: name,
             bookmaker,
+            bookmakerKey,
             odds,
             stake: exactStake,
             stakeRounded: roundStake(exactStake),
