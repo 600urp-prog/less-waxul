@@ -22,7 +22,9 @@ const Index = () => {
     isScanning,
     lastScan,
     toggleSport,
+    setSports,
     toggleBookmaker,
+    setBookmakers,
     toggleBetType,
     setBankroll,
     setMinProfit,
@@ -43,7 +45,9 @@ const Index = () => {
       isScanning={isScanning}
       lastScan={lastScan}
       onToggleSport={toggleSport}
+      onSetSports={setSports}
       onToggleBookmaker={toggleBookmaker}
+      onSetBookmakers={setBookmakers}
       onToggleBetType={toggleBetType}
       onSetBankroll={setBankroll}
       onSetMinProfit={setMinProfit}
