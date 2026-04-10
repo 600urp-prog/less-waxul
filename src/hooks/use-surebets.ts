@@ -33,11 +33,19 @@ export function useSurebets() {
     }));
   }, []);
 
+  const setSports = useCallback((keys: string[]) => {
+    setFilters(f => ({ ...f, sports: keys }));
+  }, []);
+
   const toggleBookmaker = useCallback((key: string) => {
     setFilters(f => ({
       ...f,
       bookmakers: f.bookmakers.includes(key) ? f.bookmakers.filter(b => b !== key) : [...f.bookmakers, key],
     }));
+  }, []);
+
+  const setBookmakers = useCallback((keys: string[]) => {
+    setFilters(f => ({ ...f, bookmakers: keys }));
   }, []);
 
   const toggleBetType = useCallback((key: string) => {
