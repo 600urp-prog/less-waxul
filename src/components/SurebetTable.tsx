@@ -112,10 +112,19 @@ function SurebetCard({ surebet, index }: { surebet: Surebet; index: number }) {
               <tr key={i} className="border-t border-border/50 hover:bg-secondary/30 transition-colors">
                 <td className="py-1.5 px-3 text-foreground font-medium">{o.outcomeName}</td>
                 <td className="py-1.5 px-3">
-                  <span className="inline-flex items-center gap-1 text-accent">
-                    {o.bookmaker}
-                    <ExternalLink className="h-2.5 w-2.5 opacity-50" />
-                  </span>
+                  {(() => {
+                    const url = getBookmakerUrl(o.bookmakerKey || '');
+                    return url ? (
+                      <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-accent hover:text-primary transition-colors hover:underline">
+                        {o.bookmaker}
+                        <ExternalLink className="h-2.5 w-2.5 opacity-50" />
+                      </a>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-accent">
+                        {o.bookmaker}
+                      </span>
+                    );
+                  })()}
                 </td>
                 <td className="py-1.5 px-3 text-right font-mono text-primary font-semibold">
                   {o.odds.toFixed(2)}
