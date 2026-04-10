@@ -32,6 +32,7 @@ export interface Event {
 export interface SurebetOutcome {
   outcomeName: string;
   bookmaker: string;
+  bookmakerKey: string;
   odds: number;
   stake: number;
   stakeRounded: number;
