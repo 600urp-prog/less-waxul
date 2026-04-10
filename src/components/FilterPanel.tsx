@@ -11,7 +11,9 @@ interface FilterPanelProps {
   isScanning: boolean;
   lastScan: Date | null;
   onToggleSport: (key: string) => void;
+  onSetSports: (keys: string[]) => void;
   onToggleBookmaker: (key: string) => void;
+  onSetBookmakers: (keys: string[]) => void;
   onToggleBetType: (key: string) => void;
   onSetBankroll: (value: number) => void;
   onSetMinProfit: (value: number) => void;
@@ -26,7 +28,9 @@ export function FilterPanel({
   isScanning,
   lastScan,
   onToggleSport,
+  onSetSports,
   onToggleBookmaker,
+  onSetBookmakers,
   onToggleBetType,
   onSetBankroll,
   onSetMinProfit,
@@ -106,6 +110,23 @@ export function FilterPanel({
                   </button>
                   {isGroupOpen && (
                     <div className="bg-background/50">
+                      <div className="flex gap-1 px-4 pl-8 py-1.5 border-b border-border/20">
+                        <button
+                          onClick={() => {
+                            const allKeys = [...new Set([...filters.sports, ...groupSports.map(s => s.key)])];
+                            onSetSports(allKeys);
+                          }}
+                          className="text-[10px] text-primary hover:underline"
+                        >Tout</button>
+                        <span className="text-[10px] text-muted-foreground">|</span>
+                        <button
+                          onClick={() => {
+                            const groupKeys = new Set(groupSports.map(s => s.key));
+                            onSetSports(filters.sports.filter(k => !groupKeys.has(k)));
+                          }}
+                          className="text-[10px] text-muted-foreground hover:text-foreground hover:underline"
+                        >Aucun</button>
+                      </div>
                       {groupSports.map(sport => {
                         const isSelected = filters.sports.includes(sport.key);
                         return (
@@ -171,6 +192,23 @@ export function FilterPanel({
                   </button>
                   {isGroupOpen && (
                     <div className="bg-background/50">
+                      <div className="flex gap-1 px-4 pl-8 py-1.5 border-b border-border/20">
+                        <button
+                          onClick={() => {
+                            const allKeys = [...new Set([...filters.bookmakers, ...regionBms.map(b => b.key)])];
+                            onSetBookmakers(allKeys);
+                          }}
+                          className="text-[10px] text-primary hover:underline"
+                        >Tout</button>
+                        <span className="text-[10px] text-muted-foreground">|</span>
+                        <button
+                          onClick={() => {
+                            const regionKeys = new Set(regionBms.map(b => b.key));
+                            onSetBookmakers(filters.bookmakers.filter(k => !regionKeys.has(k)));
+                          }}
+                          className="text-[10px] text-muted-foreground hover:text-foreground hover:underline"
+                        >Aucun</button>
+                      </div>
                       {regionBms.map(bm => {
                         const isSelected = filters.bookmakers.includes(bm.key);
                         return (
