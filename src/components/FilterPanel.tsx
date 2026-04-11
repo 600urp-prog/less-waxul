@@ -95,6 +95,7 @@ export function FilterPanel({
                 <span className="text-[10px] text-muted-foreground">|</span>
                 <button onClick={() => onSetSports([])} className="text-[10px] font-medium text-muted-foreground hover:text-foreground hover:underline">Aucun</button>
               </div>
+            </div>
             {SPORT_GROUPS.map(group => {
               const groupSports = sportsByGroup[group];
               if (!groupSports?.length) return null;
