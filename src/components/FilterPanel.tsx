@@ -342,9 +342,21 @@ const AUTO_INTERVALS = [
 ];
 
 function AutoScanControl({ onScan, isScanning, disabled }: { onScan: () => void; isScanning: boolean; disabled: boolean }) {
-  const [autoScan, setAutoScan] = useState(false);
-  const [interval, setInterval_] = useState(60);
+  const [autoScan, setAutoScan] = useState(() => {
+    try { return localStorage.getItem('autoScan') === 'true'; } catch { return false; }
+  });
+  const [interval, setInterval_] = useState(() => {
+    try { return Number(localStorage.getItem('autoScanInterval')) || 60; } catch { return 60; }
+  });
   const [countdown, setCountdown] = useState(0);
+
+  useEffect(() => {
+    try { localStorage.setItem('autoScan', String(autoScan)); } catch {}
+  }, [autoScan]);
+
+  useEffect(() => {
+    try { localStorage.setItem('autoScanInterval', String(interval)); } catch {}
+  }, [interval]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 

@@ -1,11 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Header } from '@/components/Header';
 import { FilterPanel } from '@/components/FilterPanel';
 import { SurebetTable } from '@/components/SurebetTable';
 import { StatsBar } from '@/components/StatsBar';
 import { HistoryTable } from '@/components/HistoryTable';
-import { useSurebets } from '@/hooks/use-surebets';
-import { useHistory } from '@/hooks/use-history';
+import { useSurebetContext } from '@/contexts/SurebetContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -30,14 +29,10 @@ const Index = () => {
     setMinProfit,
     toggleVipMode,
     scan,
-    registerOnScanComplete,
-  } = useSurebets();
+    history,
+  } = useSurebetContext();
 
-  const { entries, isLoading, reload } = useHistory();
-
-  useEffect(() => {
-    registerOnScanComplete(reload);
-  }, [registerOnScanComplete, reload]);
+  const { entries, isLoading } = history;
 
   const filterPanel = (
     <FilterPanel
@@ -85,14 +80,12 @@ const Index = () => {
         </div>
         
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6">
-          {/* Sidebar filters - desktop only */}
           {!isMobile && (
             <aside className="rounded-lg border border-border bg-card p-4">
               {filterPanel}
             </aside>
           )}
 
-          {/* Results with tabs */}
           <section>
             <Tabs defaultValue="live" className="w-full">
               <TabsList className="bg-secondary border border-border mb-4">
