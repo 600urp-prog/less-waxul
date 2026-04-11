@@ -178,6 +178,14 @@ export function FilterPanel({
 
         {expandedSection === 'bookmakers' && (
           <div className="border-t border-border max-h-60 overflow-y-auto">
+            <div className="flex items-center justify-between px-3 py-1.5 bg-secondary/30 border-b border-border/40">
+              <span className="text-[10px] text-muted-foreground font-mono">{selectedBmCount}/{BOOKMAKERS.length}</span>
+              <div className="flex gap-1.5">
+                <button onClick={() => onSetBookmakers(BOOKMAKERS.map(b => b.key))} className="text-[10px] font-medium text-primary hover:underline">Tout</button>
+                <span className="text-[10px] text-muted-foreground">|</span>
+                <button onClick={() => onSetBookmakers([])} className="text-[10px] font-medium text-muted-foreground hover:text-foreground hover:underline">Aucun</button>
+              </div>
+            </div>
             {BOOKMAKER_REGIONS.map(region => {
               const regionBms = bookmakersByRegion[region.key];
               if (!regionBms?.length) return null;
