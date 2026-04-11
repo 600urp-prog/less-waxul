@@ -306,11 +306,88 @@ export function FilterPanel({
         )}
       </Button>
 
+      {/* ── Auto-scan ── */}
+      <AutoScanControl onScan={onScan} isScanning={isScanning} disabled={filters.sports.length === 0} />
+
       {lastScan && (
         <p className="text-[10px] font-mono text-muted-foreground text-center">
           Dernier scan : {lastScan.toLocaleTimeString('fr-FR')}
         </p>
       )}
     </motion.div>
+  );
+}
+
+const AUTO_INTERVALS = [
+  { label: '30s', value: 30 },
+  { label: '1m', value: 60 },
+  { label: '2m', value: 120 },
+  { label: '5m', value: 300 },
+];
+
+function AutoScanControl({ onScan, isScanning, disabled }: { onScan: () => void; isScanning: boolean; disabled: boolean }) {
+  const [autoScan, setAutoScan] = useState(false);
+  const [interval, setInterval_] = useState(60);
+  const [countdown, setCountdown] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (countdownRef.current) clearInterval(countdownRef.current);
+
+    if (autoScan && !disabled) {
+      setCountdown(interval);
+      countdownRef.current = setInterval(() => {
+        setCountdown(c => {
+          if (c <= 1) return interval;
+          return c - 1;
+        });
+      }, 1000);
+      timerRef.current = setInterval(() => {
+        onScan();
+      }, interval * 1000);
+    }
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (countdownRef.current) clearInterval(countdownRef.current);
+    };
+  }, [autoScan, interval, disabled, onScan]);
+
+  const toggleAuto = () => setAutoScan(a => !a);
+
+  return (
+    <div className="rounded-lg border border-border p-2.5 space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-mono uppercase tracking-wider text-foreground flex items-center gap-1.5">
+          {autoScan ? <Timer className="h-3.5 w-3.5 text-primary animate-pulse" /> : <TimerOff className="h-3.5 w-3.5 text-muted-foreground" />}
+          Auto-scan
+        </span>
+        <Switch checked={autoScan} onCheckedChange={toggleAuto} disabled={disabled} className="scale-75" />
+      </div>
+      {autoScan && (
+        <>
+          <div className="flex gap-1">
+            {AUTO_INTERVALS.map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => setInterval_(opt.value)}
+                className={`flex-1 text-[10px] py-1 rounded font-mono transition-colors ${
+                  interval === opt.value
+                    ? 'bg-primary/20 text-primary border border-primary/40'
+                    : 'bg-secondary text-muted-foreground border border-border hover:text-foreground'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          <p className="text-[10px] font-mono text-muted-foreground text-center">
+            {isScanning ? 'Scan en cours...' : `Prochain scan dans ${countdown}s`}
+          </p>
+        </>
+      )}
+    </div>
   );
 }
