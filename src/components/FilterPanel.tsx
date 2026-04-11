@@ -1,10 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { SPORTS, BOOKMAKERS, BOOKMAKER_REGIONS, BET_TYPES, SPORT_GROUPS, FilterState } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { Search, Crown, DollarSign, TrendingUp, ChevronDown, ChevronRight, Check } from 'lucide-react';
+import { Search, Crown, DollarSign, TrendingUp, ChevronDown, ChevronRight, Check, Timer, TimerOff } from 'lucide-react';
 
 interface FilterPanelProps {
   filters: FilterState;
