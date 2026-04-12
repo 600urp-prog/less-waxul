@@ -3,6 +3,7 @@ import { Surebet } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, Clock, ExternalLink } from 'lucide-react';
 import { getBookmakerUrl } from '@/lib/bookmaker-urls';
+import { getBookmakerFavicon, getSportIcon } from '@/lib/bookmaker-icons';
 
 interface SurebetTableProps {
   surebets: Surebet[];
@@ -53,7 +54,7 @@ export function SurebetTable({ surebets, isScanning }: SurebetTableProps) {
 }
 
 function SurebetCard({ surebet, index }: { surebet: Surebet; index: number }) {
-  const sportEmoji = surebet.sportKey === 'soccer' ? '⚽' : surebet.sportKey === 'tennis' ? '🎾' : '🏀';
+  const sportEmoji = getSportIcon(surebet.sportKey);
   const date = new Date(surebet.commenceTime);
 
   return (
@@ -114,13 +115,19 @@ function SurebetCard({ surebet, index }: { surebet: Surebet; index: number }) {
                 <td className="py-1.5 px-3">
                   {(() => {
                     const url = getBookmakerUrl(o.bookmakerKey || '');
+                    const favicon = getBookmakerFavicon(o.bookmakerKey || '');
+                    const icon = favicon ? (
+                      <img src={favicon} alt="" className="h-4 w-4 rounded-sm inline-block" loading="lazy" />
+                    ) : null;
                     return url ? (
-                      <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-accent hover:text-primary transition-colors hover:underline">
+                      <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-accent hover:text-primary transition-colors hover:underline">
+                        {icon}
                         {o.bookmaker}
                         <ExternalLink className="h-2.5 w-2.5 opacity-50" />
                       </a>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-accent">
+                      <span className="inline-flex items-center gap-1.5 text-accent">
+                        {icon}
                         {o.bookmaker}
                       </span>
                     );
