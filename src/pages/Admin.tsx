@@ -122,6 +122,10 @@ const Admin = () => {
               <Settings className="h-3 w-3 mr-1.5" />
               Paramètres
             </TabsTrigger>
+            <TabsTrigger value="history" className="font-mono text-xs uppercase tracking-wider data-[state=active]:bg-primary/15 data-[state=active]:text-primary">
+              <History className="h-3 w-3 mr-1.5" />
+              Historique
+            </TabsTrigger>
           </TabsList>
 
           {/* DASHBOARD TAB */}
