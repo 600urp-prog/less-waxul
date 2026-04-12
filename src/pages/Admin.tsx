@@ -1,20 +1,31 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Header } from '@/components/Header';
 import { useAdminSettings } from '@/hooks/use-admin-settings';
 import { useAdminStats } from '@/hooks/use-admin-stats';
+import { fetchHistory, deleteAllHistory, deleteHistoryEntry, HistoryEntry } from '@/lib/history-service';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Slider } from '@/components/ui/slider';
 import {
   BarChart3, Settings, Key, Clock, TrendingUp, Zap, RefreshCw,
-  Activity, Eye, EyeOff, Save, ArrowLeft
+  Activity, Eye, EyeOff, Save, ArrowLeft, Trash2, History
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line } from 'recharts';
 import {
   ChartContainer,
   ChartTooltip,
