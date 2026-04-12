@@ -1,26 +1,31 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Header } from '@/components/Header';
 import { useAdminSettings } from '@/hooks/use-admin-settings';
 import { useAdminStats } from '@/hooks/use-admin-stats';
+import { fetchHistory, deleteAllHistory, deleteHistoryEntry, HistoryEntry } from '@/lib/history-service';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Slider } from '@/components/ui/slider';
 import {
   BarChart3, Settings, Key, Clock, TrendingUp, Zap, RefreshCw,
-  Activity, Eye, EyeOff, Save, ArrowLeft
+  Activity, Eye, EyeOff, Save, ArrowLeft, Trash2, History
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line } from 'recharts';
 
 const Admin = () => {
   const { settings, isLoading: settingsLoading, isSaving, updateSetting } = useAdminSettings();
@@ -29,6 +34,29 @@ const Admin = () => {
   const [localApiKey, setLocalApiKey] = useState('');
   const [localInterval, setLocalInterval] = useState<number | null>(null);
   const [apiKeyLoaded, setApiKeyLoaded] = useState(false);
+  const [historyEntries, setHistoryEntries] = useState<HistoryEntry[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  const loadHistory = useCallback(async () => {
+    setHistoryLoading(true);
+    const data = await fetchHistory(200);
+    setHistoryEntries(data);
+    setHistoryLoading(false);
+  }, []);
+
+  useEffect(() => { loadHistory(); }, [loadHistory]);
+
+  const handleDeleteAll = async () => {
+    const ok = await deleteAllHistory();
+    if (ok) { toast.success('Historique supprimé'); loadHistory(); reloadStats(); }
+    else toast.error('Erreur lors de la suppression');
+  };
+
+  const handleDeleteEntry = async (id: string) => {
+    const ok = await deleteHistoryEntry(id);
+    if (ok) { setHistoryEntries(e => e.filter(x => x.id !== id)); reloadStats(); }
+    else toast.error('Erreur lors de la suppression');
+  };
 
   // Sync local state when settings load
   if (!settingsLoading && !apiKeyLoaded) {
@@ -93,6 +121,10 @@ const Admin = () => {
             <TabsTrigger value="settings" className="font-mono text-xs uppercase tracking-wider data-[state=active]:bg-primary/15 data-[state=active]:text-primary">
               <Settings className="h-3 w-3 mr-1.5" />
               Paramètres
+            </TabsTrigger>
+            <TabsTrigger value="history" className="font-mono text-xs uppercase tracking-wider data-[state=active]:bg-primary/15 data-[state=active]:text-primary">
+              <History className="h-3 w-3 mr-1.5" />
+              Historique
             </TabsTrigger>
           </TabsList>
 
@@ -325,6 +357,89 @@ const Admin = () => {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+          {/* HISTORY TAB */}
+          <TabsContent value="history">
+            <Card className="border-border bg-card">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-sm font-mono uppercase tracking-wider flex items-center gap-2">
+                      <History className="h-4 w-4 text-primary" />
+                      Historique des surebets ({historyEntries.length})
+                    </CardTitle>
+                    <CardDescription className="text-xs">
+                      Gérer et supprimer les entrées de l'historique
+                    </CardDescription>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={loadHistory} className="font-mono text-xs border-border">
+                      <RefreshCw className="h-3 w-3 mr-1.5" />
+                      Rafraîchir
+                    </Button>
+                    {historyEntries.length > 0 && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" size="sm" className="font-mono text-xs">
+                            <Trash2 className="h-3 w-3 mr-1.5" />
+                            Tout supprimer
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Supprimer tout l'historique ?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Cette action est irréversible. Toutes les entrées seront définitivement supprimées.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Annuler</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleDeleteAll} className="bg-destructive text-destructive-foreground">
+                              Supprimer tout
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {historyLoading ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">Chargement...</p>
+                ) : historyEntries.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">Aucun historique</p>
+                ) : (
+                  <div className="space-y-2 max-h-[500px] overflow-y-auto">
+                    {historyEntries.map(entry => (
+                      <div key={entry.id} className="flex items-center justify-between rounded-md border border-border p-3 bg-secondary/30">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">
+                            {entry.home_team} vs {entry.away_team}
+                          </p>
+                          <div className="flex items-center gap-3 mt-0.5">
+                            <span className="text-xs text-muted-foreground">{entry.sport}</span>
+                            <span className="text-xs font-mono text-primary">+{Number(entry.profit_percent).toFixed(2)}%</span>
+                            <span className="text-xs font-mono text-muted-foreground">{Number(entry.profit).toFixed(2)}€</span>
+                            <span className="text-[10px] text-muted-foreground">
+                              {new Date(entry.detected_at).toLocaleDateString('fr-FR')}
+                            </span>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="shrink-0 text-muted-foreground hover:text-destructive"
+                          onClick={() => handleDeleteEntry(entry.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </main>

@@ -349,6 +349,10 @@ function AutoScanControl({ onScan, isScanning, disabled }: { onScan: () => void;
     try { return Number(localStorage.getItem('autoScanInterval')) || 60; } catch { return 60; }
   });
   const [countdown, setCountdown] = useState(0);
+  const onScanRef = useRef(onScan);
+  onScanRef.current = onScan;
+  const isScanningRef = useRef(isScanning);
+  isScanningRef.current = isScanning;
 
   useEffect(() => {
     try { localStorage.setItem('autoScan', String(autoScan)); } catch {}
@@ -373,7 +377,9 @@ function AutoScanControl({ onScan, isScanning, disabled }: { onScan: () => void;
         });
       }, 1000);
       timerRef.current = setInterval(() => {
-        onScan();
+        if (!isScanningRef.current) {
+          onScanRef.current();
+        }
       }, interval * 1000);
     }
 
@@ -381,7 +387,7 @@ function AutoScanControl({ onScan, isScanning, disabled }: { onScan: () => void;
       if (timerRef.current) clearInterval(timerRef.current);
       if (countdownRef.current) clearInterval(countdownRef.current);
     };
-  }, [autoScan, interval, disabled, onScan]);
+  }, [autoScan, interval, disabled]);
 
   const toggleAuto = () => setAutoScan(a => !a);
 

@@ -43,6 +43,24 @@ export interface HistoryEntry {
   detected_at: string;
 }
 
+export async function deleteAllHistory(): Promise<boolean> {
+  const { error } = await supabase.from('surebet_history').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+  if (error) {
+    console.error('Failed to delete history:', error);
+    return false;
+  }
+  return true;
+}
+
+export async function deleteHistoryEntry(id: string): Promise<boolean> {
+  const { error } = await supabase.from('surebet_history').delete().eq('id', id);
+  if (error) {
+    console.error('Failed to delete entry:', error);
+    return false;
+  }
+  return true;
+}
+
 export async function fetchHistory(limit = 50): Promise<HistoryEntry[]> {
   const { data, error } = await supabase
     .from('surebet_history')
