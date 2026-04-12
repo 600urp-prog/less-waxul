@@ -3,6 +3,7 @@ import { Surebet } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, Clock, ExternalLink } from 'lucide-react';
 import { getBookmakerUrl } from '@/lib/bookmaker-urls';
+import { getBookmakerFavicon, getSportIcon } from '@/lib/bookmaker-icons';
 
 interface SurebetTableProps {
   surebets: Surebet[];
