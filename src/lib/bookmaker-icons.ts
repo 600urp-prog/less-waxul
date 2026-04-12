@@ -1,12 +1,13 @@
 import { BOOKMAKER_URLS } from './bookmaker-urls';
 
-// Get favicon URL for a bookmaker using Google's favicon service
+// Get favicon URL using multiple fallback services
 export function getBookmakerFavicon(key: string): string | null {
   const url = BOOKMAKER_URLS[key];
   if (!url) return null;
   try {
     const domain = new URL(url).hostname;
-    return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+    // Use DuckDuckGo's favicon service (more reliable, no CORS issues)
+    return `https://icons.duckduckgo.com/ip3/${domain}.ico`;
   } catch {
     return null;
   }
