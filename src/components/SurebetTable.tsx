@@ -54,7 +54,7 @@ export function SurebetTable({ surebets, isScanning }: SurebetTableProps) {
 }
 
 function SurebetCard({ surebet, index }: { surebet: Surebet; index: number }) {
-  const sportEmoji = surebet.sportKey === 'soccer' ? '⚽' : surebet.sportKey === 'tennis' ? '🎾' : '🏀';
+  const sportEmoji = getSportIcon(surebet.sportKey);
   const date = new Date(surebet.commenceTime);
 
   return (
