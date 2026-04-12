@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { TrendingUp, Clock, ExternalLink } from 'lucide-react';
 import { getBookmakerUrl } from '@/lib/bookmaker-urls';
 import { getBookmakerFavicon, getSportIcon } from '@/lib/bookmaker-icons';
+import { TeamLogo } from '@/components/TeamLogo';
 
 interface SurebetTableProps {
   surebets: Surebet[];
@@ -71,9 +72,13 @@ function SurebetCard({ surebet, index }: { surebet: Surebet; index: number }) {
         <div className="flex items-center gap-2">
           <span className="text-lg">{sportEmoji}</span>
           <div>
-            <p className="text-sm font-semibold text-foreground">
-              {surebet.homeTeam} vs {surebet.awayTeam}
-            </p>
+            <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+              <TeamLogo name={surebet.homeTeam} sportKey={surebet.sportKey} size={18} />
+              {surebet.homeTeam}
+              <span className="text-muted-foreground font-normal">vs</span>
+              <TeamLogo name={surebet.awayTeam} sportKey={surebet.sportKey} size={18} />
+              {surebet.awayTeam}
+            </div>
             <div className="flex items-center gap-2 mt-0.5">
               <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-border text-muted-foreground">
                 {surebet.marketType}
