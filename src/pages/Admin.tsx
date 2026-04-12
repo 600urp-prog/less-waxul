@@ -34,6 +34,29 @@ const Admin = () => {
   const [localApiKey, setLocalApiKey] = useState('');
   const [localInterval, setLocalInterval] = useState<number | null>(null);
   const [apiKeyLoaded, setApiKeyLoaded] = useState(false);
+  const [historyEntries, setHistoryEntries] = useState<HistoryEntry[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  const loadHistory = useCallback(async () => {
+    setHistoryLoading(true);
+    const data = await fetchHistory(200);
+    setHistoryEntries(data);
+    setHistoryLoading(false);
+  }, []);
+
+  useEffect(() => { loadHistory(); }, [loadHistory]);
+
+  const handleDeleteAll = async () => {
+    const ok = await deleteAllHistory();
+    if (ok) { toast.success('Historique supprimé'); loadHistory(); reloadStats(); }
+    else toast.error('Erreur lors de la suppression');
+  };
+
+  const handleDeleteEntry = async (id: string) => {
+    const ok = await deleteHistoryEntry(id);
+    if (ok) { setHistoryEntries(e => e.filter(x => x.id !== id)); reloadStats(); }
+    else toast.error('Erreur lors de la suppression');
+  };
 
   // Sync local state when settings load
   if (!settingsLoading && !apiKeyLoaded) {
